@@ -99,8 +99,12 @@ RUN rm -f /var/www/public/hot \
     && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
     && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
+COPY docker/php/entrypoint.prod.sh /usr/local/bin/entrypoint.prod.sh
+RUN chmod +x /usr/local/bin/entrypoint.prod.sh
+
 USER www-data
 
+ENTRYPOINT ["entrypoint.prod.sh"]
 CMD ["php-fpm"]
 
 
