@@ -2,18 +2,28 @@
 
 Aplicación web para generar y gestionar pedidos de compra de alimentos (despensa) a partir de archivos Excel, construida con **Laravel 13**, **Inertia.js** (Vue 3) y **Tailwind CSS 4**.
 
+La documentación funcional y técnica se encuentra en `docs/`:
+
+- [Manual de usuario](docs/MANUAL-USUARIO.md): operación diaria, catálogo, pedidos, reportes, exportaciones y solución de problemas.
+- [Documentación técnica](docs/DOCUMENTACION-TECNICA.md): arquitectura, instalación, modelo de datos, rutas, cálculos, permisos, pruebas y despliegue.
+- [Formato de archivos Excel](docs/FORMATO-EXCEL.md): estructura aceptada para generar pedidos e importar productos.
+
 ## Requisitos
 
 - Docker y Docker Compose
 - Make
+- Un navegador web moderno
+
+En el entorno Docker local la aplicación usa MySQL. El archivo `src/.env.example` conserva el valor de SQLite del esqueleto de Laravel, por lo que una instalación nueva debe configurar las variables MySQL indicadas en la [documentación técnica](docs/DOCUMENTACION-TECNICA.md).
 
 ## Inicio rápido
 
 ```bash
 make up           # Inicia todos los servicios
-make bash         # Ingresa al contenedor PHP
 make migrate      # Ejecuta migraciones
 make seed         # Puebla categorías
+make pnpm-build    # Genera los recursos frontend si aún no existen
+make bash          # Shell opcional dentro del contenedor PHP
 ```
 
 Una vez iniciado, la aplicación está disponible en `http://localhost:8080`.
@@ -53,6 +63,7 @@ Una vez iniciado, la aplicación está disponible en `http://localhost:8080`.
 
 ```
 ├── docker/              # Configuración Docker (nginx, mysql, php)
+├── docs/                # Manual, documentación técnica y formatos Excel
 ├── src/                 # Código fuente (montado en /var/www)
 │   ├── app/
 │   │   ├── Http/Controllers/   # Controladores
