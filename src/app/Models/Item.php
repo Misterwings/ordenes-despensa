@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Item extends Model
 {
-    public const PRESENTACIONES = ['BOL', 'CAJA', 'CAN', 'TARR', 'UND', 'KG'];
+    public const PRESENTACIONES = ['BOL', 'CAJA', 'CAN', 'TARR', 'UND', 'KG', 'PAQ', 'PACA', 'PQT', 'BOT'];
 
     protected $fillable = [
         'codigo_item', 'descripcion', 'precio_unidad',
