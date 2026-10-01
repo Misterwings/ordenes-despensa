@@ -6,6 +6,7 @@ use App\Models\Item;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -35,6 +36,7 @@ class ItemController extends Controller
         return Inertia::render('Items/Index', [
             'items' => $items,
             'categories' => $categories,
+            'presentaciones' => Item::PRESENTACIONES,
             'filters' => ['search' => $search, 'category' => $categoryFilter],
         ]);
     }
@@ -45,6 +47,7 @@ class ItemController extends Controller
 
         return Inertia::render('Items/Form', [
             'categories' => $categories,
+            'presentaciones' => Item::PRESENTACIONES,
         ]);
     }
 
@@ -54,7 +57,7 @@ class ItemController extends Controller
             'codigo_item' => 'required|string|max:50',
             'descripcion' => 'required|string|max:255',
             'precio_unidad' => 'required|numeric|min:0',
-            'presentacion' => 'nullable|string|max:100',
+            'presentacion' => ['required', 'string', Rule::in(Item::PRESENTACIONES)],
             'precio_presentacion' => 'nullable|numeric|min:0',
             'categoria_id' => 'required|exists:categories,id',
         ]);
@@ -72,6 +75,7 @@ class ItemController extends Controller
         return Inertia::render('Items/Form', [
             'item' => $item,
             'categories' => $categories,
+            'presentaciones' => Item::PRESENTACIONES,
         ]);
     }
 
@@ -81,7 +85,7 @@ class ItemController extends Controller
             'codigo_item' => 'required|string|max:50',
             'descripcion' => 'required|string|max:255',
             'precio_unidad' => 'required|numeric|min:0',
-            'presentacion' => 'nullable|string|max:100',
+            'presentacion' => ['required', 'string', Rule::in(Item::PRESENTACIONES)],
             'precio_presentacion' => 'nullable|numeric|min:0',
             'categoria_id' => 'required|exists:categories,id',
         ]);
@@ -120,12 +124,13 @@ class ItemController extends Controller
 
         foreach ($rows as $index => $row) {
             $row = array_combine($header, $row);
+            $row['presentacion'] = strtoupper(trim((string) ($row['presentacion'] ?? '')));
 
             $validator = Validator::make($row, [
                 'codigo_item' => 'required|string|max:50',
                 'descripcion' => 'required|string|max:255',
                 'precio_unidad' => 'required|numeric|min:0',
-                'presentacion' => 'nullable|string|max:100',
+                'presentacion' => ['required', 'string', Rule::in(Item::PRESENTACIONES)],
                 'precio_presentacion' => 'nullable|numeric|min:0',
                 'categoria_id' => 'required|exists:categories,id',
             ]);

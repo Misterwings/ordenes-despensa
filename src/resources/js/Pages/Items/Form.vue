@@ -6,13 +6,21 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 const props = defineProps({
     item: { type: Object, default: null },
     categories: { type: Array, required: true },
+    presentaciones: { type: Array, required: true },
 });
+
+const currentPresentation = String(props.item?.presentacion ?? '').trim().toUpperCase();
+const presentationNeedsSetup = Boolean(props.item)
+    && !props.presentaciones.includes(currentPresentation);
+const legacyPresentation = presentationNeedsSetup && currentPresentation
+    ? props.item.presentacion
+    : null;
 
 const form = useForm({
     codigo_item: props.item?.codigo_item ?? '',
     descripcion: props.item?.descripcion ?? '',
     precio_unidad: props.item?.precio_unidad ?? '',
-    presentacion: props.item?.presentacion ?? '',
+    presentacion: presentationNeedsSetup ? '' : currentPresentation,
     precio_presentacion: props.item?.precio_presentacion ?? '',
     categoria_id: props.item?.categoria_id ?? '',
 });
@@ -70,8 +78,16 @@ function submit() {
                     </div>
                     <div>
                         <label class="label-field" for="presentacion">Presentación</label>
-                        <input id="presentacion" v-model="form.presentacion" type="text" class="input-field" placeholder="Ej: Bolsa x 1 KG" />
+                        <select id="presentacion" v-model="form.presentacion" class="select-field" required>
+                            <option value="" disabled>Seleccione una presentación</option>
+                            <option v-for="presentacion in presentaciones" :key="presentacion" :value="presentacion">
+                                {{ presentacion }}
+                            </option>
+                        </select>
                         <InputError :message="form.errors.presentacion" />
+                        <p v-if="presentationNeedsSetup" class="mt-1 text-xs text-amber-700">
+                            Presentación pendiente de parametrizar. Selecciona una opción nueva{{ legacyPresentation ? `; el valor anterior era ${legacyPresentation}.` : '.' }}
+                        </p>
                     </div>
                 </div>
 

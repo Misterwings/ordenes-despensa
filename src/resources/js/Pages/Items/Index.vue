@@ -7,8 +7,13 @@ import ConfirmDialog from '@/Components/ConfirmDialog.vue';
 const props = defineProps({
     items: { type: Object, required: true },
     categories: { type: Array, required: true },
+    presentaciones: { type: Array, required: true },
     filters: { type: Object, default: () => ({ search: '', category: '' }) },
 });
+
+function isPresentationPending(item) {
+    return !props.presentaciones.includes(String(item.presentacion ?? '').trim().toUpperCase());
+}
 
 const search = ref(props.filters.search || '');
 const categoryFilter = ref(props.filters.category || '');
@@ -85,6 +90,7 @@ function confirmDelete(item) {
                             <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Código</th>
                             <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Descripción</th>
                             <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Categoría</th>
+                            <th class="px-5 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Presentación</th>
                             <th class="px-5 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Acciones</th>
                         </tr>
                     </thead>
@@ -96,6 +102,12 @@ function confirmDelete(item) {
                                 <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700">
                                     {{ item.category?.nombre }}
                                 </span>
+                            </td>
+                            <td class="whitespace-nowrap px-5 py-4 text-sm">
+                                <span v-if="isPresentationPending(item)" class="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800">
+                                    Pendiente
+                                </span>
+                                <span v-else class="font-medium text-gray-700">{{ item.presentacion }}</span>
                             </td>
                             <td class="whitespace-nowrap px-5 py-4 text-right">
                                 <Link :href="route('items.edit', item.id)" class="btn-ghost btn-sm mr-1">

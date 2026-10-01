@@ -62,7 +62,7 @@
                     <td>{{ $oi->item->codigo_item }}</td>
                     <td>{{ $oi->item->descripcion }}</td>
                     <td class="right">{{ number_format($oi->precio_unitario, 0, ',', '.') }}</td>
-                    <td>{{ $oi->item->presentacion }}</td>
+                    <td>{{ $oi->presentacion ?? $oi->item->presentacion }}</td>
                     <td class="right">{{ number_format($oi->precio_presentacion, 0, ',', '.') }}</td>
                     <td class="center">{{ $oi->cantidad }}</td>
                     <td class="right">{{ number_format($oi->total, 0, ',', '.') }}</td>

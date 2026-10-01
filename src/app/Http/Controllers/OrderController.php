@@ -12,6 +12,7 @@ use App\Services\SedeCatalog;
 use App\Services\XlsxExporter;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -77,6 +78,7 @@ class OrderController extends Controller
         $parsed = $sedeResolution['parsed_items'];
 
         $this->ensureUniqueRemisionForSede($request->remision, $sedeResolution['sede']);
+        $this->ensurePresentationsMatch($parsed, $generator);
 
         if ($request->filled('manual_items')) {
             foreach ($request->manual_items as $manual) {
@@ -140,6 +142,24 @@ class OrderController extends Controller
         if ($exists) {
             $this->throwDuplicateRemisionForSedeValidation($remision, $sede);
         }
+    }
+
+    private function ensurePresentationsMatch(Collection $parsed, OrderGenerator $generator): void
+    {
+        $mismatches = $generator->generate($parsed)['presentation_mismatches'];
+
+        if ($mismatches === []) {
+            return;
+        }
+
+        $messages = collect($mismatches)->map(function (array $mismatch) {
+            $row = $mismatch['fila'] ? "Fila {$mismatch['fila']}, " : '';
+            $excel = $mismatch['unidad_medida_excel'] ?? 'vacía';
+
+            return "{$row}producto {$mismatch['codigo_item']}: U.M del Excel '{$excel}' no coincide con Presentación '{$mismatch['presentacion_producto']}'.";
+        })->implode(' ');
+
+        throw ValidationException::withMessages(['archivo' => $messages]);
     }
 
     private function throwDuplicateRemisionForSedeValidation(string $remision, string $sede): never

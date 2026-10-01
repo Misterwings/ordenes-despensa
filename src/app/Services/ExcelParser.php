@@ -19,6 +19,7 @@ class ExcelParser
         $itemColumn = 0;
         $cantidadColumn = 5;
         $operationCenterColumn = null;
+        $unitMeasureColumn = null;
 
         foreach ($rows as $row) {
             $rowIndex = $row->getRowIndex();
@@ -40,6 +41,7 @@ class ExcelParser
                     $itemColumn = $columns['item'];
                     $cantidadColumn = $columns['cantidad'] ?? $cantidadColumn;
                     $operationCenterColumn = $columns['operation_center'];
+                    $unitMeasureColumn = $columns['unit_measure'];
                 }
 
                 continue;
@@ -59,6 +61,10 @@ class ExcelParser
             $parsed = [
                 'codigo_item' => $itemCode,
                 'cantidad' => $cantidad,
+                'unidad_medida' => $unitMeasureColumn === null
+                    ? null
+                    : $this->normalizeUnitMeasure(($values[$unitMeasureColumn] ?? '') ?: ($formattedValues[$unitMeasureColumn] ?? '')),
+                'fila' => $rowIndex,
             ];
 
             if ($operationCenterColumn !== null) {
@@ -81,6 +87,7 @@ class ExcelParser
             'item' => null,
             'cantidad' => null,
             'operation_center' => null,
+            'unit_measure' => null,
         ];
 
         foreach ($values as $index => $value) {
@@ -96,6 +103,10 @@ class ExcelParser
 
             if ($columns['operation_center'] === null && in_array($header, ['CO', 'CENTRODEOPERACIONES', 'CENTROOPERACION'], true)) {
                 $columns['operation_center'] = $index;
+            }
+
+            if ($columns['unit_measure'] === null && in_array($header, ['UM', 'UNIDADMEDIDA', 'UNIDMEDIDA'], true)) {
+                $columns['unit_measure'] = $index;
             }
         }
 
@@ -131,6 +142,13 @@ class ExcelParser
         $value = str_replace(',', '.', $value);
 
         return (float) preg_replace('/[^0-9.]/', '', $value);
+    }
+
+    private function normalizeUnitMeasure(string $value): ?string
+    {
+        $value = Str::of($value)->ascii()->upper()->squish()->toString();
+
+        return $value === '' ? null : $value;
     }
 
     private function normalizeOperationCenter(string $value): ?string

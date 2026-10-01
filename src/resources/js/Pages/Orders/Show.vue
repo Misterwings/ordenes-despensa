@@ -106,7 +106,7 @@ function formatDate(value) {
                                 <td class="whitespace-nowrap px-4 py-3 text-sm font-mono text-gray-900">{{ item.item.codigo_item }}</td>
                                 <td class="px-4 py-3 text-sm text-gray-700 max-w-xs truncate">{{ item.item.descripcion }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-600">{{ formatPrice(item.precio_unitario) }}</td>
-                                <td class="whitespace-nowrap px-4 py-3 text-center text-sm text-gray-600">{{ item.item.presentacion }}</td>
+                                <td class="whitespace-nowrap px-4 py-3 text-center text-sm text-gray-600">{{ item.presentacion ?? item.item.presentacion }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 text-right text-sm text-gray-600">{{ formatPrice(item.precio_presentacion) }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-gray-900">{{ item.cantidad }}</td>
                                 <td class="whitespace-nowrap px-4 py-3 text-right text-sm font-medium text-gray-900">{{ formatPrice(item.total) }}</td>

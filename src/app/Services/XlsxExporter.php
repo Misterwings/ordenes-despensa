@@ -74,7 +74,7 @@ class XlsxExporter
                 $sheet->setCellValue('B' . $row, $oi->item->descripcion);
                 $sheet->setCellValue('C' . $row, $oi->precio_unitario);
                 $sheet->getStyle('C' . $row)->getNumberFormat()->setFormatCode('#,##0');
-                $sheet->setCellValue('D' . $row, $oi->item->presentacion);
+                $sheet->setCellValue('D' . $row, $oi->presentacion ?? $oi->item->presentacion);
                 $sheet->setCellValue('E' . $row, $oi->precio_presentacion);
                 $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('#,##0');
                 $sheet->setCellValue('F' . $row, $oi->cantidad);

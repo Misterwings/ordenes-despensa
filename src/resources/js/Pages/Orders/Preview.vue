@@ -53,6 +53,14 @@ const manualIva = computed(() =>
     )
 );
 
+const hasPresentationMismatches = computed(() =>
+    (props.orderData.presentation_mismatches ?? []).length > 0
+);
+
+const hasPendingPresentations = computed(() =>
+    (props.orderData.presentation_pending ?? []).length > 0
+);
+
 const allSubtotal = computed(() => props.orderData.subtotal + manualSubtotal.value);
 const allIva = computed(() => props.orderData.iva + manualIva.value);
 const allTotal = computed(() => allSubtotal.value + allIva.value);
@@ -147,6 +155,71 @@ const confirmOrder = () => {
                             <span v-for="code in orderData.not_found" :key="code" class="inline-flex items-center rounded-md bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
                                 {{ code }}
                             </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products that need presentation setup -->
+            <div v-if="hasPendingPresentations" class="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                <div class="flex items-start gap-3">
+                    <svg class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-semibold text-amber-900">Hay productos sin Presentación parametrizada</p>
+                        <p class="mt-1 text-sm text-amber-800">Se puede continuar con el pedido, pero no se validará la U.M. del Excel para estos productos hasta configurar su Presentación.</p>
+                        <div class="mt-3 overflow-x-auto rounded-lg border border-amber-200 bg-white">
+                            <table class="min-w-full divide-y divide-amber-100 text-left">
+                                <thead class="bg-amber-50 text-xs font-semibold uppercase tracking-wider text-amber-900">
+                                    <tr>
+                                        <th class="px-3 py-2">Fila</th>
+                                        <th class="px-3 py-2">Producto</th>
+                                        <th class="px-3 py-2">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-amber-100 text-sm text-gray-700">
+                                    <tr v-for="(pending, index) in orderData.presentation_pending" :key="`${pending.codigo_item}-${pending.fila}-${index}`">
+                                        <td class="whitespace-nowrap px-3 py-2">{{ pending.fila ?? '—' }}</td>
+                                        <td class="px-3 py-2"><span class="font-mono">{{ pending.codigo_item }}</span> — {{ pending.descripcion }}</td>
+                                        <td class="whitespace-nowrap px-3 py-2">
+                                            <Link :href="route('items.edit', pending.item_id)" class="font-semibold text-amber-800 underline decoration-amber-400 underline-offset-2 hover:text-amber-950">Configurar</Link>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- U.M validation errors -->
+            <div v-if="hasPresentationMismatches" class="rounded-xl border border-red-200 bg-red-50 p-4">
+                <div class="flex items-start gap-3">
+                    <svg class="mt-0.5 h-5 w-5 shrink-0 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                    <div class="min-w-0 flex-1">
+                        <p class="text-sm font-semibold text-red-800">Hay diferencias en U.M. Corrige el Excel o la Presentación del producto antes de confirmar.</p>
+                        <div class="mt-3 overflow-x-auto rounded-lg border border-red-200 bg-white">
+                            <table class="min-w-full divide-y divide-red-100 text-left">
+                                <thead class="bg-red-50 text-xs font-semibold uppercase tracking-wider text-red-800">
+                                    <tr>
+                                        <th class="px-3 py-2">Fila</th>
+                                        <th class="px-3 py-2">Producto</th>
+                                        <th class="px-3 py-2">U.M Excel</th>
+                                        <th class="px-3 py-2">Presentación configurada</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-red-100 text-sm text-gray-700">
+                                    <tr v-for="(mismatch, index) in orderData.presentation_mismatches" :key="`${mismatch.codigo_item}-${mismatch.fila}-${index}`">
+                                        <td class="whitespace-nowrap px-3 py-2">{{ mismatch.fila ?? '—' }}</td>
+                                        <td class="px-3 py-2"><span class="font-mono">{{ mismatch.codigo_item }}</span> — {{ mismatch.descripcion }}</td>
+                                        <td class="whitespace-nowrap px-3 py-2 font-semibold text-red-700">{{ mismatch.unidad_medida_excel ?? '(vacía)' }}</td>
+                                        <td class="whitespace-nowrap px-3 py-2 font-semibold">{{ mismatch.presentacion_producto }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -296,7 +369,7 @@ const confirmOrder = () => {
                     <p v-if="form.errors.archivo" class="mt-1 text-sm text-red-600">{{ form.errors.archivo }}</p>
                 </div>
                 <div class="flex items-center gap-3">
-                    <button type="submit" :disabled="form.processing || !form.archivo" class="btn-success flex items-center gap-2">
+                    <button type="submit" :disabled="form.processing || !form.archivo || hasPresentationMismatches" class="btn-success flex items-center gap-2">
                         <svg v-if="form.processing" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />

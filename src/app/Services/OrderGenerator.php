@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class OrderGenerator
 {
@@ -18,11 +19,36 @@ class OrderGenerator
 
         $notFound = $codes->diff($items->keys());
         $grouped = [];
+        $presentationMismatches = [];
+        $presentationPending = [];
 
         foreach ($parsedItems as $parsed) {
             $item = $items->get($parsed['codigo_item']);
             if (! $item) {
                 continue;
+            }
+
+            $catalogPresentation = $this->normalizePresentation($item->presentacion);
+
+            if (in_array($catalogPresentation, Item::PRESENTACIONES, true)) {
+                $excelPresentation = $this->normalizePresentation($parsed['unidad_medida'] ?? null);
+
+                if ($excelPresentation !== $catalogPresentation) {
+                    $presentationMismatches[] = [
+                        'fila' => $parsed['fila'] ?? null,
+                        'codigo_item' => $item->codigo_item,
+                        'descripcion' => $item->descripcion,
+                        'unidad_medida_excel' => $parsed['unidad_medida'] ?? null,
+                        'presentacion_producto' => $catalogPresentation,
+                    ];
+                }
+            } else {
+                $presentationPending[] = [
+                    'fila' => $parsed['fila'] ?? null,
+                    'item_id' => $item->id,
+                    'codigo_item' => $item->codigo_item,
+                    'descripcion' => $item->descripcion,
+                ];
             }
 
             $total = $parsed['cantidad'] * $item->precio_presentacion;
@@ -76,7 +102,18 @@ class OrderGenerator
             'iva' => $iva,
             'total' => $totalGeneral,
             'not_found' => $notFound->values(),
+            'presentation_mismatches' => $presentationMismatches,
+            'presentation_pending' => $presentationPending,
         ];
+    }
+
+    private function normalizePresentation(?string $presentation): ?string
+    {
+        if ($presentation === null || trim($presentation) === '') {
+            return null;
+        }
+
+        return Str::of($presentation)->ascii()->upper()->squish()->toString();
     }
 
     public function store(Collection $parsedItems, array $meta): Order
@@ -107,6 +144,7 @@ class OrderGenerator
                         'order_id' => $order->id,
                         'item_id' => $item->id,
                         'cantidad' => $itemData['cantidad'],
+                        'presentacion' => $itemData['presentacion'],
                         'precio_unitario' => $itemData['precio_unidad'],
                         'precio_presentacion' => $itemData['precio_presentacion'],
                         'total' => $itemData['total'],
